@@ -937,3 +937,61 @@ async def text_handler(bot: Client, m: Message):
         await m.reply_text(e)   
                      
 bot.run()
+
+
+from pyrogram.types import CallbackQuery
+
+broadcast_queue = {}
+
+@bot.on_message(filters.command("broadcast") & filters.user(ADMINS))
+async def handle_broadcast(client, message: Message):
+    if message.reply_to_message:
+        broadcast_queue[message.from_user.id] = message.reply_to_message
+        keyboard = InlineKeyboardMarkup(
+            [[
+                InlineKeyboardButton("✅ Confirm", callback_data="broadcast_confirm"),
+                InlineKeyboardButton("❌ Cancel", callback_data="broadcast_cancel")
+            ]]
+        )
+        await message.reply_text("⚡ Do you want to send this message to all users?", reply_markup=keyboard)
+    else:
+        await message.reply("Reply to a message you want to broadcast.")
+
+@bot.on_callback_query(filters.regex("broadcast_"))
+async def confirm_broadcast(client: Client, query: CallbackQuery):
+    user_id = query.from_user.id
+    data = query.data.split("_")[1]
+
+    if data == "cancel":
+        await query.message.edit("❌ Broadcast cancelled.")
+        broadcast_queue.pop(user_id, None)
+        return
+
+    if data == "confirm":
+        msg = broadcast_queue.pop(user_id, None)
+        if not msg:
+            return await query.message.edit("⚠️ No broadcast message found.")
+        
+        await query.message.edit("🚀 Broadcasting...")
+
+        user_ids = []
+        if os.path.exists("users.json"):
+            with open("users.json", "r") as f:
+                user_ids = json.load(f)
+
+        success, failed = 0, 0
+        for uid in user_ids:
+            try:
+                if msg.text:
+                    await bot.send_message(uid, msg.text, reply_markup=msg.reply_markup if msg.reply_markup else None)
+                elif msg.photo:
+                    await bot.send_photo(uid, msg.photo.file_id, caption=msg.caption or "", reply_markup=msg.reply_markup if msg.reply_markup else None)
+                elif msg.document:
+                    await bot.send_document(uid, msg.document.file_id, caption=msg.caption or "", reply_markup=msg.reply_markup if msg.reply_markup else None)
+                success += 1
+            except:
+                failed += 1
+                continue
+
+        await query.message.edit(f"✅ Broadcast complete.\n\nSent: {success}\nFailed: {failed}")
+        
