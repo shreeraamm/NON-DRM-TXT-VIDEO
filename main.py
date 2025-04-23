@@ -938,8 +938,6 @@ async def text_handler(bot: Client, m: Message):
     except Exception as e:
         await m.reply_text(e)   
                      
-bot.run()
-
 
 from pyrogram.types import CallbackQuery
 
@@ -1007,3 +1005,4 @@ async def users_command(client, message):
     except FileNotFoundError:
         await message.reply("No users have interacted yet.")
 
+bot.run()
