@@ -15,7 +15,8 @@ from bs4 import BeautifulSoup
 import core as helper
 from utils import progress_bar
 from utils import save_user
-from vars import API_ID, API_HASH, BOT_TOKEN, ADMINS
+from vars import API_ID, API_HASH, BOT_TOKEN
+from vars import ADMINS
 from aiohttp import ClientSession
 from pyromod import listen
 from subprocess import getstatusoutput
