@@ -945,7 +945,7 @@ from pyrogram.types import CallbackQuery
 
 broadcast_queue = {}
 
-@bot.on_message(filters.command("broadcast") & filters.user(ADMINS))
+@bot.on_message(filters.command("broadcast") & filters.user(ADMIN))
 async def handle_broadcast(client, message: Message):
     if message.reply_to_message:
         broadcast_queue[message.from_user.id] = message.reply_to_message
@@ -997,3 +997,13 @@ async def confirm_broadcast(client: Client, query: CallbackQuery):
 
         await query.message.edit(f"✅ Broadcast complete.\n\nSent: {success}\nFailed: {failed}")
         
+@bot.on_message(filters.command("users") & filters.user(ADMIN))
+async def users_command(client, message):
+    try:
+        with open("users.json", "r") as f:
+            users = json.load(f)
+        count = len(users)
+        await message.reply(f"👥 Total saved users: <b>{count}</b>", parse_mode="html")
+    except FileNotFoundError:
+        await message.reply("No users have interacted yet.")
+
