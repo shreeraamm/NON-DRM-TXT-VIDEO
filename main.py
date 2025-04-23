@@ -949,55 +949,84 @@ async def text_handler(bot: Client, m: Message):
 broadcast_queue = {}
 
 @bot.on_message(filters.command("broadcast") & filters.user(ADMINS))
-async def handle_broadcast(client, message):
+async def handle_broadcast(client, message: Message):
     if message.reply_to_message:
-        broadcast_queue[message.from_user.id] = message.reply_to_message
-        keyboard = InlineKeyboardMarkup([
+        original = message.reply_to_message
+        caption_raw = original.caption or original.text or ""
+        text_part = caption_raw
+        keyboard = None
+
+        if "||" in caption_raw:
+            try:
+                text_part, button_part = caption_raw.split("||")
+                buttons = json.loads(button_part.strip())
+                keyboard = InlineKeyboardMarkup(
+                    [[InlineKeyboardButton(text, url=url) for text, url in row] for row in buttons]
+                )
+            except Exception:
+                pass
+
+        broadcast_queue[message.from_user.id] = {
+            "media": original,
+            "caption": text_part.strip(),
+            "reply_markup": keyboard
+        }
+
+        preview_buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("✅ Confirm", callback_data="broadcast_confirm"),
              InlineKeyboardButton("❌ Cancel", callback_data="broadcast_cancel")]
         ])
-        await message.reply_text("⚡ Do you want to send this message to all users?", reply_markup=keyboard)
+
+        if original.photo:
+            await message.reply_photo(original.photo.file_id, caption=text_part.strip(), reply_markup=keyboard)
+        elif original.document:
+            await message.reply_document(original.document.file_id, caption=text_part.strip(), reply_markup=keyboard)
+        elif original.video:
+            await message.reply_video(original.video.file_id, caption=text_part.strip(), reply_markup=keyboard)
+        else:
+            await message.reply(text_part.strip(), reply_markup=keyboard)
+
+        await message.reply("⚡ Do you want to send this message to all users?", reply_markup=preview_buttons)
     else:
-        await message.reply("❗ Reply to a message you want to broadcast.")
+        await message.reply("❗ Reply to a message with text/photo/video to broadcast.\nYou can also add buttons like this:\n\nCaption here || [[[\"Join\",\"https://t.me/spidy\"]]]")
 
 @bot.on_callback_query(filters.regex("broadcast_"))
 async def confirm_broadcast(client, query: CallbackQuery):
     user_id = query.from_user.id
-    data = query.data.split("_")[1]
+    action = query.data.split("_")[1]
 
-    if data == "cancel":
-        await query.message.edit("❌ Broadcast cancelled.")
+    if action == "cancel":
         broadcast_queue.pop(user_id, None)
-        return
+        return await query.message.edit("❌ Broadcast cancelled.")
 
-    if data == "confirm":
-        msg = broadcast_queue.pop(user_id, None)
-        if not msg:
-            return await query.message.edit("⚠️ No message to broadcast.")
-        
-        await query.message.edit("🚀 Broadcasting...")
+    data = broadcast_queue.pop(user_id, None)
+    if not data:
+        return await query.message.edit("⚠️ Nothing to broadcast.")
 
-        if os.path.exists("users.json"):
-            with open("users.json", "r") as f:
-                users = json.load(f)
-        else:
-            users = []
+    if os.path.exists("users.json"):
+        with open("users.json", "r") as f:
+            users = json.load(f)
+    else:
+        users = []
 
-        success = 0
-        failed = 0
-        for uid in users:
-            try:
-                if msg.text:
-                    await client.send_message(uid, msg.text, reply_markup=msg.reply_markup)
-                elif msg.photo:
-                    await client.send_photo(uid, msg.photo.file_id, caption=msg.caption or "", reply_markup=msg.reply_markup)
-                elif msg.document:
-                    await client.send_document(uid, msg.document.file_id, caption=msg.caption or "", reply_markup=msg.reply_markup)
-                success += 1
-            except:
-                failed += 1
+    success, failed = 0, 0
+    for uid in users:
+        try:
+            m = data["media"]
+            if m.text:
+                await client.send_message(uid, data["caption"], reply_markup=data["reply_markup"])
+            elif m.photo:
+                await client.send_photo(uid, m.photo.file_id, caption=data["caption"], reply_markup=data["reply_markup"])
+            elif m.document:
+                await client.send_document(uid, m.document.file_id, caption=data["caption"], reply_markup=data["reply_markup"])
+            elif m.video:
+                await client.send_video(uid, m.video.file_id, caption=data["caption"], reply_markup=data["reply_markup"])
+            success += 1
+        except:
+            failed += 1
 
-        await query.message.edit(f"✅ Broadcast complete.\n\nSent: {success}\nFailed: {failed}")
+    await query.message.edit(f"✅ Broadcast complete.\n\nSent: {success}\nFailed: {failed}")
+
 print("✅ /broadcast triggered")  # or /users
 
 @bot.on_message(filters.command("users") & filters.user(ADMINS))
