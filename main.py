@@ -681,10 +681,11 @@ async def txt_handler(bot: Client, m: Message):
     await m.reply_text("<pre><code>Converted By ⌈✨『𝗦𝗣𝗜𝗗𝗬 🕷️』✨⌋</code></pre>")
 
 
-@bot.on_message(filters.text & filters.private)
+@bot.on_message(filters.text & filters.private & ~filters.command(["start", "help", "broadcast", "users"]))
 async def text_handler(bot: Client, m: Message):
     if m.from_user.is_bot:
         return
+
     links = m.text
     match = re.search(r'https?://\S+', links)
     if match:
@@ -692,9 +693,10 @@ async def text_handler(bot: Client, m: Message):
     else:
         await m.reply_text("<pre><code>Invalid link format.</code></pre>")
         return
-        
-    editable = await m.reply_text(f"<pre><code>**🔹Processing your link...\n🔁Please wait...⏳**</code></pre>")
+
+    editable = await m.reply_text("<pre><code>🔹Processing your link...\n🔁Please wait...⏳</code></pre>")
     await m.delete()
+
 
     await editable.edit("╭━━━━❰ᴇɴᴛᴇʀ ʀᴇꜱᴏʟᴜᴛɪᴏɴ❱━━➣ \n┣━━⪼ send `144`  for 144p\n┣━━⪼ send `240`  for 240p\n┣━━⪼ send `360`  for 360p\n┣━━⪼ send `480`  for 480p\n┣━━⪼ send `720`  for 720p\n┣━━⪼ send `1080` for 1080p\n╰━━⌈⚡[`🇸 🇵 🇮 🇩 🇾`]⚡⌋━━➣ ")
     input2: Message = await bot.listen(editable.chat.id, filters=filters.text & filters.user(m.from_user.id))
