@@ -998,6 +998,7 @@ async def confirm_broadcast(client, query: CallbackQuery):
                 failed += 1
 
         await query.message.edit(f"✅ Broadcast complete.\n\nSent: {success}\nFailed: {failed}")
+print("✅ /broadcast triggered")  # or /users
 
 @bot.on_message(filters.command("users") & filters.user(ADMINS))
 async def users_command(client, message):
@@ -1007,5 +1008,6 @@ async def users_command(client, message):
         await message.reply(f"👥 Total saved users: <b>{len(users)}</b>", parse_mode="html")
     except FileNotFoundError:
         await message.reply("No users stored yet.")
+print("✅ /broadcast triggered")  # or /users
 
 bot.run()
