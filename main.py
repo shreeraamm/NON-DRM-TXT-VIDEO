@@ -5,6 +5,7 @@ import json
 import time
 import asyncio
 import requests
+import json
 import subprocess
 import urllib.parse
 import yt_dlp
@@ -14,7 +15,7 @@ from bs4 import BeautifulSoup
 import core as helper
 from utils import progress_bar
 from utils import save_user
-from vars import API_ID, API_HASH, BOT_TOKEN, ADMIN
+from vars import API_ID, API_HASH, BOT_TOKEN, ADMINS
 from aiohttp import ClientSession
 from pyromod import listen
 from subprocess import getstatusoutput
@@ -23,6 +24,7 @@ from aiohttp import web
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
+from pyrogram.types import CallbackQuery
 from pyrogram.errors import FloodWait
 from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
 from pyrogram.types.messages_and_media import message
@@ -941,26 +943,24 @@ async def text_handler(bot: Client, m: Message):
         await m.reply_text(e)   
                      
 
-from pyrogram.types import CallbackQuery
+
 
 broadcast_queue = {}
 
-@bot.on_message(filters.command("broadcast") & filters.user(ADMIN))
-async def handle_broadcast(client, message: Message):
+@bot.on_message(filters.command("broadcast") & filters.user(ADMINS))
+async def handle_broadcast(client, message):
     if message.reply_to_message:
         broadcast_queue[message.from_user.id] = message.reply_to_message
-        keyboard = InlineKeyboardMarkup(
-            [[
-                InlineKeyboardButton("✅ Confirm", callback_data="broadcast_confirm"),
-                InlineKeyboardButton("❌ Cancel", callback_data="broadcast_cancel")
-            ]]
-        )
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("✅ Confirm", callback_data="broadcast_confirm"),
+             InlineKeyboardButton("❌ Cancel", callback_data="broadcast_cancel")]
+        ])
         await message.reply_text("⚡ Do you want to send this message to all users?", reply_markup=keyboard)
     else:
-        await message.reply("Reply to a message you want to broadcast.")
+        await message.reply("❗ Reply to a message you want to broadcast.")
 
 @bot.on_callback_query(filters.regex("broadcast_"))
-async def confirm_broadcast(client: Client, query: CallbackQuery):
+async def confirm_broadcast(client, query: CallbackQuery):
     user_id = query.from_user.id
     data = query.data.split("_")[1]
 
@@ -972,39 +972,39 @@ async def confirm_broadcast(client: Client, query: CallbackQuery):
     if data == "confirm":
         msg = broadcast_queue.pop(user_id, None)
         if not msg:
-            return await query.message.edit("⚠️ No broadcast message found.")
+            return await query.message.edit("⚠️ No message to broadcast.")
         
         await query.message.edit("🚀 Broadcasting...")
 
-        user_ids = []
         if os.path.exists("users.json"):
             with open("users.json", "r") as f:
-                user_ids = json.load(f)
+                users = json.load(f)
+        else:
+            users = []
 
-        success, failed = 0, 0
-        for uid in user_ids:
+        success = 0
+        failed = 0
+        for uid in users:
             try:
                 if msg.text:
-                    await bot.send_message(uid, msg.text, reply_markup=msg.reply_markup if msg.reply_markup else None)
+                    await client.send_message(uid, msg.text, reply_markup=msg.reply_markup)
                 elif msg.photo:
-                    await bot.send_photo(uid, msg.photo.file_id, caption=msg.caption or "", reply_markup=msg.reply_markup if msg.reply_markup else None)
+                    await client.send_photo(uid, msg.photo.file_id, caption=msg.caption or "", reply_markup=msg.reply_markup)
                 elif msg.document:
-                    await bot.send_document(uid, msg.document.file_id, caption=msg.caption or "", reply_markup=msg.reply_markup if msg.reply_markup else None)
+                    await client.send_document(uid, msg.document.file_id, caption=msg.caption or "", reply_markup=msg.reply_markup)
                 success += 1
             except:
                 failed += 1
-                continue
 
         await query.message.edit(f"✅ Broadcast complete.\n\nSent: {success}\nFailed: {failed}")
-        
-@bot.on_message(filters.command("users") & filters.user(ADMIN))
+
+@bot.on_message(filters.command("users") & filters.user(ADMINS))
 async def users_command(client, message):
     try:
         with open("users.json", "r") as f:
             users = json.load(f)
-        count = len(users)
-        await message.reply(f"👥 Total saved users: <b>{count}</b>", parse_mode="html")
+        await message.reply(f"👥 Total saved users: <b>{len(users)}</b>", parse_mode="html")
     except FileNotFoundError:
-        await message.reply("No users have interacted yet.")
+        await message.reply("No users stored yet.")
 
 bot.run()
