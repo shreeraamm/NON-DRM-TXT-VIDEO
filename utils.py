@@ -103,3 +103,18 @@ async def progress_bar(current, total, reply, start):
                 await reply.edit(f'`╭──⌯════𝐁𝐨𝐭 𝐒𝐭𝐚𝐭𝐢𝐜𝐬═════⌯──╮\n├⚡ {progress_bar}\n├⚙️ Progress ➤ | {perc} |\n├🚀 Speed ➤ | {sp} |\n├📟 Processed ➤ | {cur} |\n├🧲 Size ➤ | {tot} |\n├🕑 ETA ➤ | {eta} |\n╰─══✨🕸️𝗦𝗣𝗜𝗗𝗬🕸️✨══─╯`') 
             except FloodWait as e:
                 time.sleep(e.x)
+import json
+
+def save_user(user_id: int):
+    users_file = "users.json"
+    if os.path.exists(users_file):
+        with open(users_file, "r") as f:
+            users = json.load(f)
+    else:
+        users = []
+
+    if user_id not in users:
+        users.append(user_id)
+        with open(users_file, "w") as f:
+            json.dump(users, f)
+            
