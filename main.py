@@ -1037,6 +1037,6 @@ async def users_command(client, message):
         await message.reply(f"👥 Total saved users: <b>{len(users)}</b>", parse_mode="html")
     except FileNotFoundError:
         await message.reply("No users stored yet.")
-print("✅ /broadcast triggered")  # or /users
+print("✅ /users triggered")  # or /users
 
 bot.run()
