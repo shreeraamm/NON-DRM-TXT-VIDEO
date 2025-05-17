@@ -10,6 +10,8 @@ import subprocess
 import urllib.parse
 import yt_dlp
 import cloudscraper
+import threading
+from web import app 
 from logs import logging
 from bs4 import BeautifulSoup
 import core as helper
@@ -1039,4 +1041,10 @@ async def users_command(client, message):
         await message.reply("No users stored yet.")
 print("✅ /users triggered")  # or /users
 
+def run_web():
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
+if __name__ == "__main__":
+    threading.Thread(target=run_web).start()
+   
 bot.run()
