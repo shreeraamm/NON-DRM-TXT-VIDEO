@@ -2,10 +2,10 @@
 # Add your details here and then deploy by clicking on HEROKU Deploy button
 import os
 
-API_ID    = os.environ.get("API_ID", "")
-API_HASH  = os.environ.get("API_HASH", "")
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "") 
-ADMIN     = os.environ.get("ADMIN", "")  
+API_ID    = os.environ.get("API_ID", "27426550")
+API_HASH  = os.environ.get("API_HASH", "994f8e90abd48bad09b64c0bed0e56b7")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "7339823187:AAGMGoL9XtKZAJecgggflI6uWT0ehaEppuA") 
+ADMIN     = os.environ.get("ADMIN", "1977145189")  
 ADMINS = [1977145189]  # Replace with your real Telegram ID
 # Replace with your Telegram user ID
 
