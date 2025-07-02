@@ -402,7 +402,7 @@ async def txt_handler(bot: Client, m: Message):
                         url = re.search(r"(https://.*?playlist.m3u8.*?)\"", text).group(1)
 
             elif 'videos.classplusapp' in url or "tencdn.classplusapp" in url or "webvideos.classplusapp.com" in url or "media-cdn-alisg.classplusapp.com" in url or "videos.classplusapp" in url or "videos.classplusapp.com" in url or "media-cdn-a.classplusapp" in url or "media-cdn.classplusapp" in url or "alisg-cdn-a.classplusapp" in url:
-             url = requests.get(f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', headers={'x-access-token': 'eyJjb3Vyc2VJZCI6IjQ1NjY4NyIsInR1dG9ySWQiOm51bGwsIm9yZ0lkIjo0ODA2MTksImNhdGVnb3J5SWQiOm51bGx9r'}).json()['url']
+             url = requests.get(f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', headers={'x-access-token': 'eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJpZCI6MTU1MjMwODE3LCJvcmdJZCI6MjIxNiwidHlwZSI6MSwibW9iaWxlIjoiOTE5NDM0MzIzMTIwIiwibmFtZSI6InNhbmRlZXAga3VtYXIiLCJlbWFpbCI6InJ1YmV0dGE5MTc3OUA0aS52ZXJ0ZXhpdW0ubmV0IiwiaXNGaXJzdExvZ2luIjp0cnVlLCJkZWZhdWx0TGFuZ3VhZ2UiOiJFTiIsImNvdW50cnlDb2RlIjoiSU4iLCJpc0ludGVybmF0aW9uYWwiOjAsImlzRGl5Ijp0cnVlLCJsb2dpblZpYSI6Ik90cCIsImZpbmdlcnByaW50SWQiOiI3NzRjZWRhMDk0Mzk0YjVjOTQ3Mzg3ODUxOWFhNzllNyIsImlhdCI6MTc1MTQ3MzQ3NCwiZXhwIjoxNzUyMDc4Mjc0fQ.m6I9oD50uIqC7OR9_OcpJl5LLCjzFODW-5LJ2K9uwHeqfjW3VbFsPBDN2Gez-AFE'}).json()['url']
                                         
             elif "d1d34p8vz63oiq" in url or "sec1.pw.live" in url:
              url = f"https://anonymouspwplayer-b99f57957198.herokuapp.com/pw?url={url}?token={raw_text4}"
